@@ -1,0 +1,2 @@
+rootProject.name = "MimoMobileChallenge"
+include ':app'
