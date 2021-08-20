@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">MimoMobileChallenge</string>
+    <string name="runButtonText">Run</string>
+    <string name="finalPageText">Congratulations! You did it.</string>
+    <string name="createText">Create:</string>
 </resources>
