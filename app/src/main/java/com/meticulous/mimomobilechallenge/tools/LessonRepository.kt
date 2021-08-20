@@ -3,15 +3,19 @@ package com.meticulous.mimomobilechallenge.tools
 import android.util.Log
 import com.meticulous.mimomobilechallenge.models.Lesson
 import com.meticulous.mimomobilechallenge.models.LessonsData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class LessonRepository {
+class LessonRepository constructor(val database: MimoChallengeDb){
     private val TAG = "MIMO_Repository"
     val lessons: MutableList<Lesson> = mutableListOf()
     val lessonFetchedListeners = mutableSetOf<LessonFetchedListener>()
     var lastIndex = 0
+    private val coroutineDbScope = CoroutineScope(Dispatchers.IO)
 
     init {
         fetchLessons()
@@ -63,4 +67,11 @@ class LessonRepository {
         Log.d(TAG, "deregisterFromLessonFetched called")
         lessonFetchedListeners.remove(listener)
     }
+
+    fun saveLesson(completedLesson: LessonComplete) {
+        coroutineDbScope.launch {
+            database.lessonCompleteDao().insertAll(completedLesson)
+        }
+    }
+
 }

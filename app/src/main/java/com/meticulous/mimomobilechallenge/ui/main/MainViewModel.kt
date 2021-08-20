@@ -9,8 +9,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.meticulous.mimomobilechallenge.models.Content
 import com.meticulous.mimomobilechallenge.models.Lesson
+import com.meticulous.mimomobilechallenge.tools.LessonComplete
 import com.meticulous.mimomobilechallenge.tools.LessonFetchedListener
 import com.meticulous.mimomobilechallenge.tools.LessonRepository
+import com.meticulous.mimomobilechallenge.tools.MimoChallengeDb
 
 class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedListener {
     private val TAG = "MIMO_VM"
@@ -18,7 +20,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
     val loaderVisibility: ObservableField<Boolean> = ObservableField(true)
     val runButtonEnabled: ObservableField<Boolean> = ObservableField(false)
     val instructionCode: ObservableField<String> = ObservableField("")
-    private val repository: LessonRepository by lazy { LessonRepository() }
+    private val repository: LessonRepository by lazy {
+        LessonRepository(MimoChallengeDb.getDatabase(app))
+    }
+
+    private var lessonStartTime: Long = System.currentTimeMillis()
+    private var lessonCompletedTime: Long = System.currentTimeMillis()
 
     private var expectedAnswer: String = ""
     private var hasInput = false
@@ -32,8 +39,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
 
     fun onRunButtonClicked() {
         Log.d(TAG, "onRunButtonClicked called")
+        lessonCompletedTime = System.currentTimeMillis()
+        repository.saveLesson(LessonComplete(currentLesson.id, lessonStartTime, lessonCompletedTime))
         uiStateAction.value = UiState.Answered
-        //TODO; Safe lesson completed object
         processNextLesson()
     }
 
@@ -49,8 +57,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
             // This means we've come to the end of the lesson
             uiStateAction.value = UiState.Done
             Log.w(TAG, "getNextLesson got null. Returning")
+            repository.getLessons()
             return
         }
+        lessonStartTime = System.currentTimeMillis()
         currentLesson = lesson
         hasInput = lesson.hasInput()
 
