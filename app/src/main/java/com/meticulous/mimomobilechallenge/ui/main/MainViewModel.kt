@@ -57,7 +57,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
             // This means we've come to the end of the lesson
             uiStateAction.value = UiState.Done
             Log.w(TAG, "getNextLesson got null. Returning")
-            repository.getLessons()
             return
         }
         lessonStartTime = System.currentTimeMillis()
@@ -136,7 +135,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
             val answer = p0?.toString().orEmpty()
             Log.d(TAG, "afterTextChanged called. answer: $answer")
             // Update the run button as necessary
-            runButtonEnabled.set(!hasInput || (answer.isNotBlank() && answer == expectedAnswer))
+            // Trim is not ideal in every case as the expected answer might have trailing spaces
+            // and you want the user to enter the exact answer but, it is at least acceptable for this demo case
+            runButtonEnabled.set(!hasInput || (answer.isNotBlank() && answer.trim() == expectedAnswer.trim()))
         }
     }
 
