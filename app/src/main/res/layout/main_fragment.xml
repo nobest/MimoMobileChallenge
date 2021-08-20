@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="viewModel"
+            type="com.meticulous.mimomobilechallenge.ui.main.MainViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.main.MainFragment">
+
+        <TextView
+            android:id="@+id/instruction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/dp10"
+            android:textSize="@dimen/sp24"
+            android:text="@string/createText"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <TextView
+            android:id="@+id/instructionCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/dp10"
+            android:textStyle="italic"
+            android:textSize="@dimen/sp24"
+            android:text="@{viewModel.instructionCode}"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/instruction"/>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/contentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/dp16"
+            android:background="@color/teal_300"
+            app:layout_constraintTop_toBottomOf="@+id/instructionCode" />
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dp16"
+            android:text="@string/runButtonText"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:padding="@dimen/dp16"
+            android:enabled="@{viewModel.runButtonEnabled}"
+            android:onClick="@{() -> viewModel.onRunButtonClicked()}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <View
+            android:id="@+id/loaderBackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/backGround"/>
+
+        <androidx.core.widget.ContentLoadingProgressBar
+            android:id="@+id/loader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?android:attr/progressBarStyleLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewModel.loaderVisibility ? View.VISIBLE : View.GONE}"
+            app:constraint_referenced_ids="loader,loaderBackground"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
