@@ -38,7 +38,7 @@ class TextInputView : AppCompatEditText {
             mContent = it
             setTextColor(Color.parseColor(it.color))
         }
-        textSize = 20F
+        textSize = 26F
         width = (100 * context.resources.displayMetrics.density).toInt() // width to 100dp
     }
 

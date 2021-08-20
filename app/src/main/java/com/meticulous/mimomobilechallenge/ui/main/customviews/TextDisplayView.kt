@@ -40,7 +40,7 @@ class TextDisplayView : AppCompatTextView {
             text = it.text
             setTextColor(Color.parseColor(it.color))
         }
-        textSize = 20F
+        textSize = 26F
 
     }
 
