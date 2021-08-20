@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Content(
     @SerializedName("text") val text: String = "",
-    @SerializedName("color") val color: String = ""
+    @SerializedName("color") val color: String = "#FFFFFF"
 )
 
 data class Input(
@@ -16,7 +16,9 @@ data class Lesson(
     @SerializedName("id") val id: Int = -1,
     @SerializedName("content") val contents: List<Content>,
     @SerializedName("input") val input: Input? = null
-)
+) {
+    fun hasInput() = input != null
+}
 
 data class LessonsData(
     @SerializedName("lessons") val lessons: List<Lesson>
