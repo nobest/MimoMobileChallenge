@@ -1,6 +1,5 @@
 package com.meticulous.mimomobilechallenge.tools
 
-import android.util.Log
 import com.meticulous.mimomobilechallenge.models.Content
 import com.meticulous.mimomobilechallenge.models.Lesson
 
@@ -11,7 +10,7 @@ class LessonEngine {
         lesson: Lesson,
         callback: (viewTypes: List<ViewType>, instructionText: String, expectedAnswer: String) -> Unit
     ) {
-        Log.d(TAG, "processLesson called")
+        println("$TAG processLesson called")
 
         val outputViews = arrayListOf<ViewType>()
         // Extract all the text in the lesson
@@ -28,14 +27,11 @@ class LessonEngine {
         val startIndex = lesson.input?.startIndex ?: 0
         val endIndex = lesson.input?.endIndex ?: 0
 
-        Log.v(
-            TAG,
-            "processLesson hasInput: $hasInput instructionText: $instructionText startIndex: $startIndex endIndex: $endIndex"
-        )
+        println("$TAG processLesson hasInput: $hasInput instructionText: $instructionText startIndex: $startIndex endIndex: $endIndex")
 
         if (hasInput) {
             expectedAnswer = instructionText.substring(startIndex, endIndex)
-            Log.i(TAG, "processLesson expectedAnswer: $expectedAnswer")
+            println("$TAG processLesson expectedAnswer: $expectedAnswer")
 
             var appendedLength = 0
             lesson.contents.forEach { content ->
