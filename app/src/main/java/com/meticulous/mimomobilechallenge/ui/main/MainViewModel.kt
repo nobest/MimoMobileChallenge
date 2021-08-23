@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import com.meticulous.mimomobilechallenge.models.Content
 import com.meticulous.mimomobilechallenge.models.Lesson
 import com.meticulous.mimomobilechallenge.tools.LessonComplete
+import com.meticulous.mimomobilechallenge.tools.LessonEngine
 import com.meticulous.mimomobilechallenge.tools.LessonFetchedListener
 import com.meticulous.mimomobilechallenge.tools.LessonRepository
 import com.meticulous.mimomobilechallenge.tools.MimoChallengeDb
@@ -22,6 +23,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
     val instructionCode: ObservableField<String> = ObservableField("")
     private val repository: LessonRepository by lazy {
         LessonRepository(MimoChallengeDb.getDatabase(app))
+    }
+    private val lessonEngine: LessonEngine by lazy {
+        LessonEngine()
     }
 
     private var lessonStartTime: Long = System.currentTimeMillis()
@@ -40,7 +44,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
     fun onRunButtonClicked() {
         Log.d(TAG, "onRunButtonClicked called")
         lessonCompletedTime = System.currentTimeMillis()
-        repository.saveLesson(LessonComplete(currentLesson.id, lessonStartTime, lessonCompletedTime))
+        repository.saveLesson(
+            LessonComplete(
+                currentLesson.id,
+                lessonStartTime,
+                lessonCompletedTime
+            )
+        )
         uiStateAction.value = UiState.Answered
         processNextLesson()
     }
@@ -51,72 +61,32 @@ class MainViewModel(app: Application) : AndroidViewModel(app), LessonFetchedList
     }
 
     private fun processNextLesson() {
-        Log.d(TAG, "getNextLesson called")
+        Log.d(TAG, "processNextLesson called")
         val lesson = repository.getNextLesson()
         if (lesson == null) {
             // This means we've come to the end of the lesson
             uiStateAction.value = UiState.Done
-            Log.w(TAG, "getNextLesson got null. Returning")
+            Log.w(TAG, "processNextLesson got null. Returning Done")
             return
         }
+        loaderVisibility.set(false)
         lessonStartTime = System.currentTimeMillis()
         currentLesson = lesson
         hasInput = lesson.hasInput()
+        runButtonEnabled.set(!hasInput)
 
-        // Extract all the text in the lesson
-        val textBuilder = StringBuilder()
-        lesson.contents.forEach { content ->
-            textBuilder.append(content.text)
-        }
-        val text = textBuilder.toString()
-
-        // Display the text in the instruction view
-        instructionCode.set(text)
-
-        // Get the start and end indexes. Only needed if we have INPUT in the lesson
-        val startIndex = lesson.input?.startIndex ?: 0
-        val endIndex = lesson.input?.endIndex ?: 0
-
-        // We have a lesson at hand, hide loader
-        loaderVisibility.set(false)
-        Log.v(
-            TAG,
-            "getNextLesson hasInput: $hasInput text: $text startIndex: $startIndex endIndex: $endIndex"
-        )
-
-        if (hasInput) {
-            //Disable the run button if we have input in the lesson until the user enter the correct answer
-            runButtonEnabled.set(false)
-            // Extract the expected answer which is the correct answer
-            expectedAnswer = text.substring(startIndex, endIndex)
-            Log.i(TAG, "getNextLesson expectedAnswer: $expectedAnswer")
-
-            var appendedLength = 0
-            lesson.contents.forEach { content ->
-                if (appendedLength + content.text.length <= startIndex) {
-                    uiStateAction.value = UiState.BindTextDisplay(content)
-                    appendedLength += content.text.length
-                } else if (appendedLength < endIndex && appendedLength + content.text.length >= endIndex) {
-                    uiStateAction.value = UiState.BindTextInput(content)
-                    uiStateAction.value = UiState.BindTextDisplay(
-                        Content(
-                            text.substring(
-                                endIndex,
-                                appendedLength + content.text.length
-                            ), content.color
-                        )
-                    )
-                    appendedLength += content.text.length
-                } else {
-                    uiStateAction.value = UiState.BindTextDisplay(content)
-                    appendedLength += content.text.length
+        lessonEngine.processLesson(lesson) { viewTypes, instructionText, answer ->
+            Log.d(
+                TAG,
+                "processNextLesson.lessonEngine.processLesson instructionText: $instructionText, answer: $answer and\nviewTypes: $viewTypes"
+            )
+            instructionCode.set(instructionText)
+            expectedAnswer = answer
+            viewTypes.forEach {
+                uiStateAction.value = when (it) {
+                    is LessonEngine.ViewType.TextDisplay -> UiState.BindTextDisplay(it.content)
+                    is LessonEngine.ViewType.TextInput -> UiState.BindTextInput(it.content)
                 }
-            }
-        } else {
-            // If we have no input in the lesson, just add all the views to the display
-            runButtonEnabled.set(true)
-            lesson.contents.forEach { content ->
-                uiStateAction.value = UiState.BindTextDisplay(content)
             }
         }
     }
